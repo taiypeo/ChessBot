@@ -9,7 +9,7 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, nullable=False, primary_key=True)
-    username = Column(String, nullable=False, unique=True)
+    username = Column(String, nullable=False, unique=True, index=True)
     elo = Column(Integer, nullable=False, default=1000)
 
     last_game_id = Column(Integer, ForeignKey("games.id"))
