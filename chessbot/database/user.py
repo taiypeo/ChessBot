@@ -1,6 +1,8 @@
+from typing import List
 from sqlalchemy import Column, String, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 from . import Base
+from .game import Game
 
 
 class User(Base):
@@ -17,7 +19,7 @@ class User(Base):
     # black_games (relationship defined in game.py)
 
     @property
-    def games(self):
+    def games(self) -> List[Game]:
         return [*self.white_games, *self.black_games]
 
     def __repr__(self) -> str:
