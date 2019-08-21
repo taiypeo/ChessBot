@@ -38,5 +38,5 @@ def to_svg(board: chess.Board, size: int = 400) -> io.BytesIO:
     except IndexError:
         svg_image = chess.svg.board(board, size=size)
 
-    png = svg2png(bytestring=svg_image.encode('UTF-8'))
+    png = svg2png(bytestring=svg_image.encode("UTF-8"))
     return io.BytesIO(png)

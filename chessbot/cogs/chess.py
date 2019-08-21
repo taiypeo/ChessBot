@@ -5,7 +5,7 @@ from .utils import load_from_pgn, save_to_pgn, move, to_svg
 
 
 class Chess(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
     @commands.command()
