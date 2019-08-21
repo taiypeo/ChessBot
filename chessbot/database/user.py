@@ -9,7 +9,7 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, nullable=False, primary_key=True)
-    username = Column(String, nullable=False, unique=True, index=True)
+    discord_id = Column(String, nullable=False, unique=True, index=True)
     elo = Column(Integer, nullable=False, default=1000)
 
     last_game_id = Column(Integer, ForeignKey("games.id"))
@@ -23,4 +23,4 @@ class User(Base):
         return [*self.white_games, *self.black_games]
 
     def __repr__(self) -> str:
-        return f"<User username={self.username}; elo={self.elo}>"
+        return f"<User discord_id={self.discord_id}; elo={self.elo}>"

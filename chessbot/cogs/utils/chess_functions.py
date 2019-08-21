@@ -32,7 +32,7 @@ def move(board: chess.Board, san_move: str) -> None:
     board.push(move)
 
 
-def to_svg(board: chess.Board, size: int = 400) -> io.BytesIO:
+def to_png(board: chess.Board, size: int = 400) -> io.BytesIO:
     try:
         svg_image = chess.svg.board(board, lastmove=board.peek(), size=size)
     except IndexError:
