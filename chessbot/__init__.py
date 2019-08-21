@@ -1,23 +1,16 @@
-import discord
+from discord.ext import commands
 from loguru import logger
+from .cogs.chess import Chess
 from .config import TOKEN
 
-client = discord.Client()
+bot = commands.Bot(command_prefix="!")
+bot.add_cog(Chess(bot))
 
 
-@client.event
-async def on_ready():
-    logger.info(f"Logged in as {client.user}")
+@bot.event
+async def on_ready() -> None:
+    logger.info(f"Logged in as {bot.user}")
 
 
-@client.event
-async def on_message(msg):
-    if message.author == client.user:
-        return
-
-    if message.content.startsWith("/hello"):
-        await message.channel.send("Hello!")
-
-
-def main():
-    client.run(TOKEN)
+def main() -> None:
+    bot.run(TOKEN)
