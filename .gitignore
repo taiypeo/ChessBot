@@ -4,3 +4,4 @@ __pycache__/
 .mypy_cache/
 env_variables.sh
 db.sqlite
+mock_database.py

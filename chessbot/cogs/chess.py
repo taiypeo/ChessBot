@@ -1,4 +1,4 @@
-from discord import File, Member
+import discord
 from discord.ext import commands
 from loguru import logger
 from .utils import load_from_pgn, save_to_pgn, move, to_png, get_game, get_game_status
@@ -10,7 +10,7 @@ class Chess(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    async def play(self, ctx: commands.Context, user: Member) -> None:
+    async def play(self, ctx: commands.Context, user: discord.Member) -> None:
         await ctx.send(f"PING! {user.mention}")
 
     @commands.command()
@@ -24,7 +24,11 @@ class Chess(commands.Cog):
             else:
                 await ctx.send(f"{ctx.author.mention}, couldn't find that game.")
         else:
-            await ctx.send(str(game))
+            status_str, img = get_game_status(self.bot, game)
+            if status_str is None:
+                await ctx.send(f"{ctx.author.mention}, failed to get the status for that game. Please contact the admin.")
+            else:
+                await ctx.send(status_str, file=img)
 
     @commands.command()
     async def move(self, ctx: commands.Context, pgn: str, san_move: str) -> None:
@@ -35,7 +39,7 @@ class Chess(commands.Cog):
             await ctx.send(f"Invalid SAN move specified.")
             return
 
-        svg = File(to_svg(board), filename="board.png")
+        svg = discord.File(to_svg(board), filename="board.png")
         new_pgn = save_to_pgn(board)
 
         await ctx.send(new_pgn, file=svg)
@@ -43,5 +47,5 @@ class Chess(commands.Cog):
     async def cog_command_error(
         self, ctx: commands.Context, error: commands.CommandError
     ) -> None:
-        logger.error(error.with_traceback)
+        logger.error(error)
         await ctx.send(f"{ctx.author.mention}, {error}")
