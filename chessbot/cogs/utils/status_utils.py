@@ -4,7 +4,7 @@ from discord.ext import commands
 from loguru import logger
 from typing import Tuple
 
-from .chess_functions import load_from_pgn, to_png, get_winner
+from .chess_utils import load_from_pgn, to_png, get_winner
 from .user_utils import get_user
 from ... import database
 
