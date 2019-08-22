@@ -35,10 +35,19 @@ def move(board: chess.Board, san_move: str) -> None:
 
 
 def to_png(board: chess.Board, size: int = 400) -> discord.File:
+    args = {"size": size}
+
     try:
-        svg_image = chess.svg.board(board, lastmove=board.peek(), size=size)
+        lastmove = board.peek()
+        args["lastmove"] = lastmove
+
+        if board.is_check():
+            args["check"] = board.king(board.turn)
     except IndexError:
-        svg_image = chess.svg.board(board, size=size)
+        logger.info("No last move in this board, skipping")
+        pass
+
+    svg_image = chess.svg.board(board, **args)
 
     png = svg2png(bytestring=svg_image.encode("UTF-8"))
     return discord.File(io.BytesIO(png), filename="board.png")
@@ -47,10 +56,43 @@ def to_png(board: chess.Board, size: int = 400) -> discord.File:
 def get_winner(board: chess.Board, claim_draw: bool = False) -> str:
     winner = board.result(claim_draw=claim_draw)
     if winner == "1-0":
-        return "White wins."
+        return "White wins"
     elif winner == "0-1":
-        return "Black wins."
+        return "Black wins"
     elif winner == "1/2-1/2":
-        return "Draw."
+        return "Draw"
     else:
         raise RuntimeError("Game is not over yet, can't get the winner")
+
+
+def get_game_over_reason(board: chess.Board, claim_draw: bool = False) -> str:
+    reasons = [
+        "Checkmate",
+        "Stalemate",
+        "Insufficient material",
+        "Draw by the seventyfive-move rule",
+        "Draw by the fivefold repetition rule",
+    ]
+    checks = [
+        board.is_checkmate(),
+        board.is_stalemate(),
+        board.is_insufficient_material(),
+        board.is_seventyfive_moves(),
+        board.is_fivefold_repetition(),
+    ]
+
+    if claim_draw:
+        reasons = [
+            *reasons,
+            *["Draw by the fifty-move rule", "Draw by the threefold repetition rule"],
+        ]
+        checks = [
+            *checks,
+            *[board.can_claim_fifty_moves(), board.can_claim_threefold_repetition()],
+        ]
+
+    possible = [reason for reason, check in zip(reasons, checks) if check]
+    if len(possible) > 0:
+        return possible[0]
+    else:
+        raise RuntimeError("No possible game over reason")

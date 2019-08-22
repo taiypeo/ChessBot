@@ -1,4 +1,5 @@
 from ... import database
+import datetime
 
 
 def get_game(user_id: int, game_id: int) -> database.Game:
@@ -16,3 +17,7 @@ def get_game(user_id: int, game_id: int) -> database.Game:
         return game
     else:
         raise RuntimeError(f"No game found for {user_id}")
+
+
+def has_game_expired(game: database.Game) -> bool:
+    return datetime.datetime.now() > game.expiration_date
