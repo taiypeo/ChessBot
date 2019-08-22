@@ -42,3 +42,15 @@ def to_png(board: chess.Board, size: int = 400) -> discord.File:
 
     png = svg2png(bytestring=svg_image.encode("UTF-8"))
     return discord.File(io.BytesIO(png), filename="board.png")
+
+
+def get_winner(board: chess.Board, claim_draw: bool = False) -> str:
+    winner = board.result(claim_draw=claim_draw)
+    if winner == "1-0":
+        return "White wins."
+    elif winner == "0-1":
+        return "Black wins."
+    elif winner == "1/2-1/2":
+        return "Draw."
+
+    return None
