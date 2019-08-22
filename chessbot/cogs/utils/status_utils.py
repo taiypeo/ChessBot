@@ -34,7 +34,7 @@ def get_game_status(bot: commands.Bot, game: database.Game) -> Tuple[str, discor
 
     status = (
         f"__Game ID: {game.id}__\n"
-        f"{white_mention} (White) **VS.** {black_mention} (Black)\n"
+        f"{white_mention} (white) **VS.** {black_mention} (black)\n"
     )
 
     board = load_from_pgn(game.pgn)

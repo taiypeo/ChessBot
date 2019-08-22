@@ -37,7 +37,7 @@ def update_game(game: database.Game, recalculate_expiration_date: bool = False) 
     turn = get_turn(board)
 
     if has_game_expired(game):
-        game.win_reason = "Game expired."
+        game.win_reason = "Game expired"
         if turn == constants.WHITE:
             game.winner = constants.BLACK
         else:

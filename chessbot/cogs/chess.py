@@ -14,6 +14,8 @@ class Chess(commands.Cog):
 
     @commands.command()
     async def status(self, ctx: commands.Context, game_id: int = None) -> None:
+        logger.info("Got a !status command")
+
         try:
             game = get_game(ctx.author.id, game_id)
         except RuntimeError as err:
