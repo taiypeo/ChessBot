@@ -10,7 +10,7 @@ from loguru import logger
 
 
 def load_from_pgn(pgn_str: str) -> chess.Board:
-    game = chess.pgn.read_game(io.StringIO(pgn_str))
+    game = chess.pgn.read_game(io.StringIO(pgn_str))  # TODO: maybe add a PGN check?
     board = game.board()
     for move in game.mainline_moves():
         board.push(move)
@@ -27,9 +27,9 @@ def save_to_pgn(board: chess.Board) -> str:
 def move(board: chess.Board, san_move: str) -> None:
     try:
         move = board.parse_san(san_move)
-    except ValueError:
+    except ValueError as err:
         logger.error(f"Invalid SAN move: {san_move}")
-        raise ValueError
+        raise err
 
     board.push(move)
 
@@ -52,5 +52,5 @@ def get_winner(board: chess.Board, claim_draw: bool = False) -> str:
         return "Black wins."
     elif winner == "1/2-1/2":
         return "Draw."
-
-    return None
+    else:
+        raise RuntimeError("Game is not over yet, can't get the winner")

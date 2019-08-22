@@ -9,26 +9,6 @@ from .user_utils import get_user
 from ... import database
 
 
-def get_game(ctx: commands.Context, game_id: int) -> database.Game:
-    user_id = ctx.author.id
-
-    if game_id is None:
-        game = (
-            database.session.query(database.User).filter_by(discord_id=user_id).first()
-        )
-    else:
-        game = database.session.query(database.Game).get(game_id)
-
-    if game is not None:
-        if game_id is None:
-            game = game.last_game
-
-        return game
-
-    logger.error(f"No game found for {user_id}")
-    return None
-
-
 def _get_status_mentions(
     white: discord.User, black: discord.User, game: database.Game
 ) -> Tuple[str, str]:
@@ -47,8 +27,9 @@ def _get_status_mentions(
 
 def get_game_status(bot: commands.Bot, game: database.Game) -> Tuple[str, discord.File]:
     if not game.white or not game.black:
-        logger.error(f"Either white or black player is not present in game #{game.id}")
-        return None, None
+        raise RuntimeError(
+            f"Either white or black player is not present in game #{game.id}"
+        )
 
     white, black = get_user(bot, game.white), get_user(bot, game.black)
     white_mention, black_mention = _get_status_mentions(white, black, game)
@@ -76,11 +57,11 @@ def get_game_status(bot: commands.Bot, game: database.Game) -> Tuple[str, discor
             result = "Draw."
         else:
             logger.error(f"Game winner is None in game #{game.id}")
-            result = get_winner(board)  # TODO: add claim_draw
-
-        if result is None:
-            logger.error(f"Game is over but there is no result!")
-            return None, None
+            try:
+                result = get_winner(board)  # TODO: add claim_draw
+            except RuntimeError as err:
+                logger.error(f"Failed to get the result for a finished game")
+                raise err
 
         status += f"\n**Game over!** {result}"
 
