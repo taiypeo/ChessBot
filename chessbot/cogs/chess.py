@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from loguru import logger
-from .utils import get_game, get_game_status
+from .utils import get_game, get_game_status, update_game
 
 
 class Chess(commands.Cog):
@@ -24,6 +24,8 @@ class Chess(commands.Cog):
 
             logger.error(err)
             return
+
+        update_game(game)
 
         try:
             status_str, img = get_game_status(self.bot, game)

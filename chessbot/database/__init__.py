@@ -17,4 +17,6 @@ Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 session = Session()
 
+from .add_to_database import add_to_database
+
 logger.info("SQLAlchemy session is ready")

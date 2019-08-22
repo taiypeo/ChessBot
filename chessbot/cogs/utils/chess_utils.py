@@ -8,6 +8,8 @@ import io
 from cairosvg import svg2png
 from loguru import logger
 
+from ... import constants
+
 
 def load_from_pgn(pgn_str: str) -> chess.Board:
     game = chess.pgn.read_game(io.StringIO(pgn_str))  # TODO: maybe add a PGN check?
@@ -53,19 +55,29 @@ def to_png(board: chess.Board, size: int = 400) -> discord.File:
     return discord.File(io.BytesIO(png), filename="board.png")
 
 
-def get_winner(board: chess.Board, claim_draw: bool = False) -> str:
+def get_winner(
+    board: chess.Board, claim_draw: bool = False, both_agreed: bool = False
+) -> int:
+    if both_agreed:
+        return constants.DRAW
+
     winner = board.result(claim_draw=claim_draw)
     if winner == "1-0":
-        return "White wins"
+        return constants.WHITE
     elif winner == "0-1":
-        return "Black wins"
+        return constants.BLACK
     elif winner == "1/2-1/2":
-        return "Draw"
+        return constants.DRAW
     else:
         raise RuntimeError("Game is not over yet, can't get the winner")
 
 
-def get_game_over_reason(board: chess.Board, claim_draw: bool = False) -> str:
+def get_game_over_reason(
+    board: chess.Board, claim_draw: bool = False, both_agreed: bool = False
+) -> str:
+    if both_agreed:
+        return "Both opponents agreed to draw"
+
     reasons = [
         "Checkmate",
         "Stalemate",
@@ -96,3 +108,7 @@ def get_game_over_reason(board: chess.Board, claim_draw: bool = False) -> str:
         return possible[0]
     else:
         raise RuntimeError("No possible game over reason")
+
+
+def get_turn(board: chess.Board) -> int:
+    return constants.WHITE if board.turn else constants.BLACK

@@ -1,4 +1,12 @@
-from sqlalchemy import Column, String, Integer, DateTime, SmallInteger, ForeignKey
+from sqlalchemy import (
+    Column,
+    String,
+    Integer,
+    DateTime,
+    SmallInteger,
+    Boolean,
+    ForeignKey,
+)
 from sqlalchemy.orm import relationship
 import datetime
 from . import Base
@@ -21,12 +29,16 @@ class Game(Base):
     black = relationship("User", foreign_keys=[black_id], backref="black_games")
 
     pgn = Column(String, default="*", nullable=False)
+
     winner = Column(SmallInteger)
+    win_reason = Column(String)
+
+    draw_proposed = Column(Boolean, default=False)
+    white_accepted_draw = Column(Boolean, default=False)
+    black_accepted_draw = Column(Boolean, default=False)
 
     expiration_date = Column(
-        DateTime,
-        default=lambda: datetime.datetime.now() + EXPIRATION_TIMEDELTA,
-        nullable=False,
+        DateTime, default=lambda: datetime.datetime.now() + EXPIRATION_TIMEDELTA
     )
 
     def __repr__(self) -> str:
