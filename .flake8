@@ -1,0 +1,5 @@
+[flake8]
+ignore = E402
+max-line-length = 160
+exclude = chessbot/cogs/utils/__init__.py
+per_file_ignores = chessbot/database/__init__.py:F401
