@@ -61,7 +61,9 @@ def update_game(game: database.Game, recalculate_expiration_date: bool = False) 
         )
     except RuntimeError as err:
         logger.info("The game has not ended yet:")
-        logger.error(err)
+        logger.info(
+            err
+        )  # not actually an error, just the reasoning behind the game not being over
 
         return
 

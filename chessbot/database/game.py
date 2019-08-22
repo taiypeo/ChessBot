@@ -12,10 +12,6 @@ import datetime
 from . import Base
 from ..config import EXPIRATION_TIMEDELTA
 
-WHITE = 0
-BLACK = 1
-DRAW = 2
-
 
 class Game(Base):
     __tablename__ = "games"

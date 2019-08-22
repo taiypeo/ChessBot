@@ -10,7 +10,7 @@ engine = create_engine(DB_PATH)
 Base = declarative_base()
 
 from .user import User
-from .game import Game, WHITE, BLACK, DRAW
+from .game import Game
 
 Base.metadata.create_all(engine)
 
