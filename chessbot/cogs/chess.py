@@ -183,8 +183,10 @@ class Chess(commands.Cog):
         await self.status_func(ctx, game=game)
 
     @commands.command()
-    async def draw(self, ctx: commands.Context, game_id: int = None) -> None:
-        logger.info("Got a !draw command")
+    async def offer(
+        self, ctx: commands.Context, action: str, game_id: int = None
+    ) -> None:
+        logger.info("Got an !offer command")
 
         game = await self.get_game(ctx, ctx.author.id, game_id)
         if game is None:  # check the Game object for validity
@@ -192,7 +194,7 @@ class Chess(commands.Cog):
 
         if game.winner is not None:  # check that the game hasn't finished yet
             await ctx.send(f"{ctx.author.mention}, the game is over.")
-            logger.error(f"Can't offer draw in game #{game.id} - the game is over")
+            logger.error(f"Can't offer an action in game #{game.id} - the game is over")
             return
 
         user = await self.get_author_user(ctx)
@@ -203,28 +205,39 @@ class Chess(commands.Cog):
             game, user
         ):  # check that the message author is a player in this game
             logger.error(
-                f"User #{user.discord_id} tried to illegally offer a draw in game #{game.id}"
+                f"User #{user.discord_id} tried to illegally offer an in game #{game.id}"
             )
             await ctx.send(
-                f"{ctx.author.mention}, you can't offer a draw in this game."
+                f"{ctx.author.mention}, you can't offer an action in this game."
             )
             return
 
+        action_type = constants.OFFERABLE_ACTIONS.get(action.upper())
+
+        if action_type is None:  # check that this action is offerable
+            logger.error(
+                f'User #{user.discord_id} tried to offer an illegal action "{action}" in game #{game.id}'
+            )
+            await ctx.send(f"{ctx.author.mention}, this action does not exist.")
+            return
+
         if (
-            game.action_proposed == constants.ACTION_DRAW
-        ):  # check that a draw hasn't been offered yet
-            logger.error(f"Draw has already been offered in game #{game.id}")
+            game.action_proposed == action_type
+        ):  # check that this action hasn't been offered yet
+            logger.error(
+                f'Action "{action}" has already been offered in game #{game.id}'
+            )
             await ctx.send(
-                f"{ctx.author.mention}, a draw has already been offered in this game."
+                f"{ctx.author.mention}, this action has already been offered in this game."
             )
             return
 
         try:
-            handle_action_offer(user, game, constants.ACTION_DRAW)
+            handle_action_offer(user, game, action_type)
         except RuntimeError as err:
             logger.error(err)
             await ctx.send(
-                f"{ctx.author.mention}, you can't offer a draw in this game."
+                f"{ctx.author.mention}, you can't offer an action in this game."
             )
             return
 

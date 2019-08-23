@@ -53,7 +53,7 @@ def update_game(
         database.add_to_database(game)
 
     claim_draw = game.action_proposed == constants.ACTION_DRAW
-    both_agreed = game.white_accepted_action and game.black_accepted_action
+    both_agreed = claim_draw and game.white_accepted_action and game.black_accepted_action
 
     try:
         winner = get_winner(board, claim_draw=claim_draw, both_agreed=both_agreed)

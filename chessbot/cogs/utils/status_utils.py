@@ -45,24 +45,27 @@ def get_game_status(bot: commands.Bot, game: database.Game) -> Tuple[str, discor
         turn_str = constants.turn_to_str(turn)
         status += f"*{turn_str.capitalize()}'s turn.*\n"
 
-        if game.action_proposed == constants.ACTION_DRAW:
+        if game.action_proposed in constants.OFFERABLE_ACTIONS.values():
             if not (game.white_accepted_action or game.black_accepted_action):
-                raise RuntimeError("Draw was offered but neither player accepted it")
-            if game.white_accepted_action and game.black_accepted_action:
                 raise RuntimeError(
-                    "Both oppontents accepted to draw, but the game is not over"
+                    "An action was offered but neither player accepted it"
                 )
 
-            draw_side = who_offered_action(game)
+            action = constants.OFFERABLE_ACTIONS_REVERSE.get(game.action_proposed)
+            if action is None:
+                raise RuntimeError("Action is not present in OFFERABLE_ACTIONS_REVERSE")
+            action_str = action.lower()
+
+            action_side = who_offered_action(game)
             opposite_side = (
-                constants.BLACK if draw_side == constants.WHITE else constants.WHITE
+                constants.BLACK if action_side == constants.WHITE else constants.WHITE
             )
 
-            draw_side_str = constants.turn_to_str(draw_side).capitalize()
+            action_side_str = constants.turn_to_str(action_side).capitalize()
             opposite_side_str = constants.turn_to_str(opposite_side)
 
             status += (
-                f"**{draw_side_str} offered a draw.** "
+                f'**{action_side_str} offered a "{action_str}" action.** '
                 f"If {opposite_side_str} wants to accept, they should type *!accept {game.id}*\n"
             )
 

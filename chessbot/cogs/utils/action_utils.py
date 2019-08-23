@@ -34,4 +34,4 @@ def handle_action_accept(user: database.User, game: database.Game) -> None:
     elif game.black == user:
         game.black_accepted_action = True
 
-    update_game(game)
+    update_game(game, reset_action=True)
