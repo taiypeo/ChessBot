@@ -91,3 +91,7 @@ def who_offered_draw(game: database.Game) -> int:
         return constants.WHITE
     else:
         return constants.BLACK
+
+
+def is_player(game: database.Game, user: database.User) -> bool:
+    return user in [game.white, game.black]

@@ -7,6 +7,7 @@ from .utils import (
     get_game_status,
     update_game,
     get_database_user,
+    is_player,
     handle_draw_accept,
     handle_turn_check,
     handle_move,
@@ -82,11 +83,18 @@ class Chess(commands.Cog):
         if game is None:
             return
 
-        if game.draw_proposed and game.white_accepted_draw != game.black_accepted_draw:
-            user = await self.get_author_user(ctx)
-            if user is None:
-                return
+        user = await self.get_author_user(ctx)
+        if user is None:
+            return
 
+        if not is_player(game, user):
+            logger.error(
+                f"User #{user.id} tried to illegally !accept in game #{game.id}"
+            )
+            await ctx.send(f"{ctx.author.mention}, you can't use !accept in this game.")
+            return
+
+        if game.draw_proposed and game.white_accepted_draw != game.black_accepted_draw:
             try:
                 handle_draw_accept(user, game)
             except RuntimeError as err:
@@ -116,11 +124,15 @@ class Chess(commands.Cog):
         if game.winner is not None:
             await ctx.send(f"{ctx.author.mention}, the game is over.")
             logger.error(f"Can't move in game #{game.id} - the game is over")
-
             return
 
         user = await self.get_author_user(ctx)
         if user is None:
+            return
+
+        if not is_player(game, user):
+            logger.error(f"User #{user.id} tried to illegally play game #{game.id}")
+            await ctx.send(f"{ctx.author.mention}, you can't play this game.")
             return
 
         try:
