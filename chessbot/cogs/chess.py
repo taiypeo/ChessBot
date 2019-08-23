@@ -12,6 +12,7 @@ from .utils import (
     handle_draw_accept,
     handle_turn_check,
     handle_move,
+    create_database_user,
 )
 from .. import database
 
@@ -49,6 +50,25 @@ class Chess(commands.Cog):
                 f"{ctx.author.mention}, failed to fetch your data from the database. Please, contact the admin."
             )
             return None
+
+    async def create_database_user(
+        ctx: commands.Context, discord_user: discord.User
+    ) -> database.User:
+        try:
+            database_user = create_database_user(discord_user)
+        except RuntimeError as err:
+            logger.info(err)  # not an error, the user already exists
+
+            try:
+                database_user = get_database_user(discord_user.id)
+            except RuntimeError as err:
+                logger.error(err)
+                await ctx.send(
+                    f"{discord_user.mention}, failed to find you in the database. Please, contact the admin."
+                )
+                return None
+
+        return database_user
 
     async def status_func(
         self, ctx: commands.Context, game_id: int = None, game: database.Game = None
@@ -92,7 +112,7 @@ class Chess(commands.Cog):
             game, user
         ):  # check that the message author is a player in this game
             logger.error(
-                f"User #{user.id} tried to illegally !accept in game #{game.id}"
+                f"User #{user.discord_id} tried to illegally !accept in game #{game.id}"
             )
             await ctx.send(f"{ctx.author.mention}, you can't use !accept in this game.")
             return
@@ -138,7 +158,9 @@ class Chess(commands.Cog):
         if not is_player(
             game, user
         ):  # check that the message author is a player in this game
-            logger.error(f"User #{user.id} tried to illegally play game #{game.id}")
+            logger.error(
+                f"User #{user.discord_id} tried to illegally play game #{game.id}"
+            )
             await ctx.send(f"{ctx.author.mention}, you can't play this game.")
             return
 
@@ -183,7 +205,7 @@ class Chess(commands.Cog):
             game, user
         ):  # check that the message author is a player in this game
             logger.error(
-                f"User #{user.id} tried to illegally offer a draw in game #{game.id}"
+                f"User #{user.discord_id} tried to illegally offer a draw in game #{game.id}"
             )
             await ctx.send(
                 f"{ctx.author.mention}, you can't offer a draw in this game."
@@ -211,7 +233,27 @@ class Chess(commands.Cog):
 
     @commands.command()
     async def play(self, ctx: commands.Context, user: discord.Member) -> None:
-        pass
+        white = await self.create_database_user(ctx.author)
+        black = await self.create_database_user(user)
+
+        if white is None or black is None:  # check the validity of User objects
+            return
+
+        if white == black:  # check that white and black are different users
+            logger.error(f"User #{white.discord_id} tried to play against themselves")
+            await ctx.send(f"{ctx.author.mention}, you can't play against yourself.")
+            return
+
+        game = database.Game(white=white, black=black)
+        database.add_to_database(game)
+
+        white.last_game = game
+        database.add_to_database(white)
+
+        black.last_game = game
+        database.add_to_database(black)
+
+        await self.status_func(ctx, game=game)
 
     async def cog_command_error(
         self, ctx: commands.Context, error: commands.CommandError

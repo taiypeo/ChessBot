@@ -103,4 +103,6 @@ def which_player(game: database.Game, user: database.User) -> int:
     elif user == game.black:
         return constants.BLACK
     else:
-        raise RuntimeError(f"User #{user.id} is not a player in game #{game.id}")
+        raise RuntimeError(
+            f"User #{user.discord_id} is not a player in game #{game.id}"
+        )

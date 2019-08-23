@@ -18,3 +18,20 @@ def get_full_username(user: discord.User) -> str:
 
 def get_discord_user(bot: commands.Bot, user: database.User) -> discord.User:
     return bot.get_user(user.discord_id)
+
+
+def create_database_user(discord_user: discord.User) -> database.User:
+    if (
+        database.session.query(database.User)
+        .filter_by(discord_id=discord_user.id)
+        .first()
+        is not None
+    ):
+        raise RuntimeError(f"User #{discord_user.id} already exists")
+
+    user = database.User(
+        discord_id=discord_user.id, username=get_full_username(discord_user)
+    )
+    database.add_to_database(user)
+
+    return user

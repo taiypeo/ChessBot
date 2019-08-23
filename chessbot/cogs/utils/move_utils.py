@@ -9,7 +9,7 @@ def handle_turn_check(user: database.User, game: database.Game) -> None:
         get_turn(board) == constants.BLACK and user == game.white
     ):
         raise RuntimeError(
-            f"User #{user.id} tried to move on the wrong turn in game #{game.id}"
+            f"User #{user.discord_id} tried to move on the wrong turn in game #{game.id}"
         )
 
 
