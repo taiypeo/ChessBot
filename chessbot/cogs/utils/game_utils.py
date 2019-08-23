@@ -8,19 +8,21 @@ import datetime
 
 def get_game(user_id: int, game_id: int) -> database.Game:
     if game_id is None:
-        game = (
+        user = (
             database.session.query(database.User).filter_by(discord_id=user_id).first()
         )
+        if user is None:
+            raise RuntimeError(f"User #{user_id} does not exist in the database")
+
+        game = user.last_game
+        if game is None:
+            raise RuntimeError(f"User #{user_id} does not have a last game")
     else:
         game = database.session.query(database.Game).get(game_id)
+        if game is None:
+            raise RuntimeError(f"Game #{game_id} does not exist in the database")
 
-    if game is not None:
-        if game_id is None:
-            game = game.last_game
-
-        return game
-    else:
-        raise RuntimeError(f"No game found for {user_id}")
+    return game
 
 
 def has_game_expired(game: database.Game) -> bool:
@@ -71,3 +73,15 @@ def update_game(game: database.Game, recalculate_expiration_date: bool = False) 
     game.win_reason = reason
     game.expiration_date = None
     database.add_to_database(game)
+
+
+def who_offered_draw(game: database.Game) -> int:
+    if not game.draw_proposed or not (
+        game.white_accepted_draw or game.black_accepted_draw
+    ):
+        raise RuntimeError("Nobody offered to draw")
+
+    if game.white_accepted_draw:
+        return constants.WHITE
+    else:
+        return constants.BLACK

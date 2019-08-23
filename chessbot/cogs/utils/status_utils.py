@@ -4,6 +4,7 @@ from typing import Tuple
 
 from .chess_utils import load_from_pgn, to_png, get_turn
 from .user_utils import get_user
+from .game_utils import who_offered_draw
 from ... import database, constants
 
 
@@ -42,10 +43,31 @@ def get_game_status(bot: commands.Bot, game: database.Game) -> Tuple[str, discor
     if game.winner is None and game.win_reason is None:
         turn = get_turn(board)
         turn_str = constants.turn_to_str(turn)
-        status += (
-            f"*{turn_str.capitalize()}'s turn.*\n\n"
-            f"This game will expire on {game.expiration_date},\nresulting in {turn_str} losing, if they don't make a move."
-        )
+        status += f"*{turn_str.capitalize()}'s turn.*\n"
+
+        if game.draw_proposed:
+            if not (game.white_accepted_draw or game.black_accepted_draw):
+                raise RuntimeError("Draw was offered but neither player accepted it")
+            if game.white_accepted_draw and game.black_accepted_draw:
+                raise RuntimeError(
+                    "Both oppontents accepted to draw, but the game is not over"
+                )
+
+            draw_side = who_offered_draw(game)
+            opposite_side = (
+                constants.BLACK if draw_side == constants.WHITE else constants.WHITE
+            )
+
+            draw_side_str = constants.turn_to_str(draw_side).capitalize()
+            opposite_side_str = constants.turn_to_str(opposite_side)
+
+            status += (
+                f"**{draw_side_str} offered to draw.** "
+                f"If {opposite_side_str} wants to accept, they should type *!accept {game.id}*\n"
+            )
+
+        status += f"\nThis game will expire on {game.expiration_date},\nresulting in {turn_str} losing, if they don't make a move.\n"
+
     elif game.winner is not None and game.win_reason is not None:
         result = constants.turn_to_str(game.winner).capitalize()
         result = (

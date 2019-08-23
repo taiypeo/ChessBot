@@ -1,3 +1,4 @@
+import traceback
 import discord
 from discord.ext import commands
 from loguru import logger
@@ -27,6 +28,7 @@ class Chess(commands.Cog):
             logger.error(err)
             return
 
+        logger.info(f"Got game #{game_id} - {game}")
         update_game(game)
 
         try:
@@ -50,4 +52,5 @@ class Chess(commands.Cog):
         self, ctx: commands.Context, error: commands.CommandError
     ) -> None:
         logger.error(error)
+        logger.error(traceback.format_exc())
         await ctx.send(f"{ctx.author.mention}, {error}")
