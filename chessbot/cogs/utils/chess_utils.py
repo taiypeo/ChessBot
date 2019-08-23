@@ -36,6 +36,13 @@ def move(board: chess.Board, san_move: str) -> None:
     board.push(move)
 
 
+def undo(board: chess.Board) -> None:
+    try:
+        board.pop()
+    except IndexError:
+        logger.error("Can't undo the last move")
+
+
 def to_png(board: chess.Board, size: int = 400) -> discord.File:
     args = {"size": size}
 
@@ -58,7 +65,7 @@ def to_png(board: chess.Board, size: int = 400) -> discord.File:
 def get_winner(
     board: chess.Board, claim_draw: bool = False, both_agreed: bool = False
 ) -> int:
-    if both_agreed:
+    if claim_draw and both_agreed:
         return constants.DRAW
 
     winner = board.result(claim_draw=claim_draw)
@@ -75,7 +82,7 @@ def get_winner(
 def get_game_over_reason(
     board: chess.Board, claim_draw: bool = False, both_agreed: bool = False
 ) -> str:
-    if both_agreed:
+    if claim_draw and both_agreed:
         return "Both opponents agreed to a draw"
 
     reasons = [

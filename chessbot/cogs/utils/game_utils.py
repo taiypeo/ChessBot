@@ -1,4 +1,11 @@
-from .chess_utils import load_from_pgn, get_winner, get_game_over_reason, get_turn
+from .chess_utils import (
+    load_from_pgn,
+    get_winner,
+    get_game_over_reason,
+    get_turn,
+    undo,
+    save_to_pgn,
+)
 from .user_utils import get_database_user
 from ... import constants, database
 from ...config import EXPIRATION_TIMEDELTA
@@ -53,7 +60,8 @@ def update_game(
         database.add_to_database(game)
 
     claim_draw = game.action_proposed == constants.ACTION_DRAW
-    both_agreed = claim_draw and game.white_accepted_action and game.black_accepted_action
+    undo_last = game.action_proposed == constants.ACTION_UNDO
+    both_agreed = game.white_accepted_action and game.black_accepted_action
 
     try:
         winner = get_winner(board, claim_draw=claim_draw, both_agreed=both_agreed)
@@ -65,6 +73,11 @@ def update_game(
         logger.info(
             err
         )  # not actually an error, just the reasoning behind the game not being over
+
+        if undo_last and both_agreed:
+            undo(board)
+            game.pgn = save_to_pgn(board)
+            database.add_to_database(game)
 
         if reset_action:
             game.action_proposed = constants.ACTION_NONE

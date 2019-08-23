@@ -6,7 +6,7 @@ def handle_action_offer(user: database.User, game: database.Game, action: int) -
     if action not in [
         constants.ACTION_NONE,
         constants.ACTION_DRAW,
-        constants.ACTION_BACK,
+        constants.ACTION_UNDO,
     ]:
         raise RuntimeError("Impossible action")
 
