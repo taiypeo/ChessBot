@@ -8,13 +8,10 @@ from .utils import (
     update_game,
     get_database_user,
     handle_draw_accept,
-    load_from_pgn,
-    save_to_pgn,
-    move,
-    get_turn,
+    handle_turn_check,
+    handle_move,
 )
 from .. import database
-from .. import constants
 
 
 class Chess(commands.Cog):
@@ -40,9 +37,9 @@ class Chess(commands.Cog):
         update_game(game)
         return game
 
-    async def get_user(self, user_id: int) -> database.User:
+    async def get_author_user(self, ctx: commands.Context) -> database.User:
         try:
-            user = get_database_user(user_id)
+            user = get_database_user(ctx.author.id)
             return user
         except RuntimeError as err:
             logger.error(err)
@@ -86,7 +83,7 @@ class Chess(commands.Cog):
             return
 
         if game.draw_proposed and game.white_accepted_draw != game.black_accepted_draw:
-            user = await self.get_user(ctx.author.id)
+            user = await self.get_author_user(ctx)
             if user is None:
                 return
 
@@ -122,30 +119,28 @@ class Chess(commands.Cog):
 
             return
 
-        user = await self.get_user(ctx.author.id)
+        user = await self.get_author_user(ctx)
         if user is None:
             return
 
-        board = load_from_pgn(game.pgn)
-        if (get_turn(board) == constants.WHITE and user == game.black) or (
-            get_turn(board) == constants.BLACK and user == game.white
-        ):
-            logger.error("Can't move when it's not your turn")
+        try:
+            handle_turn_check(user, game)
+        except RuntimeError as err:
+            logger.error(err)
             await ctx.send(f"{ctx.author.mention}, it is not your turn.")
             return
 
         try:
-            move(board, san_move)
+            handle_move(game, san_move)
         except ValueError as err:
             logger.error(err)
             await ctx.send(
                 f"{ctx.author.mention}, {san_move} is not a valid SAN move in this game."
             )
             return
-        game.pgn = save_to_pgn(board)
-        database.add_to_database(game)
 
         update_game(game, recalculate_expiration_date=True, reset_draw_offer=True)
+        user.last_game = game
         await self.status_func(ctx, game=game)
 
     @commands.command()
