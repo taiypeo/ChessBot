@@ -76,7 +76,7 @@ def get_game_over_reason(
     board: chess.Board, claim_draw: bool = False, both_agreed: bool = False
 ) -> str:
     if both_agreed:
-        return "Both opponents agreed to draw"
+        return "Both opponents agreed to a draw"
 
     reasons = [
         "Checkmate",

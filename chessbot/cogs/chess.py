@@ -8,6 +8,7 @@ from .utils import (
     update_game,
     get_database_user,
     is_player,
+    handle_draw_offer,
     handle_draw_accept,
     handle_turn_check,
     handle_move,
@@ -153,6 +154,51 @@ class Chess(commands.Cog):
 
         update_game(game, recalculate_expiration_date=True, reset_draw_offer=True)
         user.last_game = game
+        await self.status_func(ctx, game=game)
+
+    @commands.command()
+    async def draw(self, ctx: commands.Context, game_id: int = None) -> None:
+        logger.info("Got a !draw command")
+
+        game = await self.get_game(ctx, ctx.author.id, game_id)
+        if game is None:
+            return
+
+        if game.winner is not None:
+            await ctx.send(f"{ctx.author.mention}, the game is over.")
+            logger.error(f"Can't offer draw in game #{game.id} - the game is over")
+            return
+
+        user = await self.get_author_user(ctx)
+        if user is None:
+            return
+
+        if not is_player(game, user):
+            logger.error(
+                f"User #{user.id} tried to illegally offer a draw in game #{game.id}"
+            )
+            await ctx.send(
+                f"{ctx.author.mention}, you can't offer a draw in this game."
+            )
+            return
+
+        if game.draw_proposed:
+            logger.error(f"Draw has already been offered in game #{game.id}")
+            await ctx.send(
+                f"{ctx.author.mention}, a draw has already been offered in this game."
+            )
+            return
+
+        try:
+            handle_draw_offer(user, game)
+        except RuntimeError as err:
+            logger.error(err)
+            await ctx.send(
+                f"{ctx.author.mention}, you can't offer a draw in this game."
+            )
+            return
+
+        update_game(game)
         await self.status_func(ctx, game=game)
 
     @commands.command()

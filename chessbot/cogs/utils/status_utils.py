@@ -62,7 +62,7 @@ def get_game_status(bot: commands.Bot, game: database.Game) -> Tuple[str, discor
             opposite_side_str = constants.turn_to_str(opposite_side)
 
             status += (
-                f"**{draw_side_str} offered to draw.** "
+                f"**{draw_side_str} offered a draw.** "
                 f"If {opposite_side_str} wants to accept, they should type *!accept {game.id}*\n"
             )
 

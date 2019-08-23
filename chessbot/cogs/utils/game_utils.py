@@ -69,7 +69,7 @@ def update_game(
         if reset_draw_offer:
             game.draw_proposed = False
             game.white_accepted_draw = False
-            game.white_accepted_draw = False
+            game.black_accepted_draw = False
 
             database.add_to_database(game)
 
@@ -95,3 +95,12 @@ def who_offered_draw(game: database.Game) -> int:
 
 def is_player(game: database.Game, user: database.User) -> bool:
     return user in [game.white, game.black]
+
+
+def which_player(game: database.Game, user: database.User) -> int:
+    if user == game.white:
+        return constants.WHITE
+    elif user == game.black:
+        return constants.BLACK
+    else:
+        raise RuntimeError(f"User #{user.id} is not a player in game #{game.id}")
