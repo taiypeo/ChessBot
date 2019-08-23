@@ -38,6 +38,7 @@ def update_game(
     game: database.Game,
     recalculate_expiration_date: bool = False,
     reset_action: bool = False,
+    concede_side: int = None,
 ) -> None:
     if game.winner is not None:
         return  # if the game has already finished, there is nothing to do
@@ -51,6 +52,19 @@ def update_game(
             game.winner = constants.BLACK
         else:
             game.winner = constants.WHITE
+
+        database.add_to_database(game)
+        return
+
+    if concede_side in [constants.WHITE, constants.BLACK]:
+        if concede_side == constants.WHITE:
+            game.winner = constants.BLACK
+        else:
+            game.winner = constants.WHITE
+
+        concede_side_str = constants.turn_to_str(concede_side).capitalize()
+        game.win_reason = f"{concede_side_str} conceded"
+        game.expiration_date = None
 
         database.add_to_database(game)
         return

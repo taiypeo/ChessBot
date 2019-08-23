@@ -8,6 +8,7 @@ from .utils import (
     update_game,
     get_database_user,
     is_player,
+    which_player,
     handle_action_offer,
     handle_action_accept,
     handle_turn_check,
@@ -266,6 +267,35 @@ class Chess(commands.Cog):
         black.last_game = game
         database.add_to_database(black)
 
+        await self.status_func(ctx, game=game)
+
+    @commands.command()
+    async def concede(self, ctx: commands.Context, game_id: int = None) -> None:
+        logger.info("Got a !concede command")
+
+        game = await self.get_game(ctx, ctx.author.id, game_id)
+        if game is None:  # check the Game object for validity
+            return
+
+        if game.winner is not None:  # check that the game hasn't finished yet
+            await ctx.send(f"{ctx.author.mention}, the game is over.")
+            logger.error(f"Can't concede in game #{game.id} - the game is over")
+            return
+
+        user = await self.get_author_user(ctx)
+        if user is None:  # check the User object for validity
+            return
+
+        if not is_player(
+            game, user
+        ):  # check that the message author is a player in this game
+            logger.error(
+                f"User #{user.discord_id} tried to illegally play game #{game.id}"
+            )
+            await ctx.send(f"{ctx.author.mention}, you can't play this game.")
+            return
+
+        update_game(game, concede_side=which_player(game, user))
         await self.status_func(ctx, game=game)
 
     async def cog_command_error(

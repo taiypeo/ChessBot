@@ -17,9 +17,13 @@ class Help(commands.Cog):
             color=0x88E93A,
         )
         embed.set_author(name="Qwertygid", url="https://github.com/QwertygidQ/")
-        embed.add_field(name=f"{prefix}help", value="Displays the help message.", inline=False)
         embed.add_field(
-            name=f"{prefix}play @someone", value="Starts a game with @someone.", inline=False
+            name=f"{prefix}help", value="Displays the help message.", inline=False
+        )
+        embed.add_field(
+            name=f"{prefix}play @someone",
+            value="Starts a game with @someone.",
+            inline=False,
         )
         embed.add_field(
             name=f"{prefix}move (SAN move) [Game ID]",
@@ -39,6 +43,11 @@ class Help(commands.Cog):
         embed.add_field(
             name=f"{prefix}accept [Game ID]",
             value="Accepts an action in the game.",
+            inline=False,
+        )
+        embed.add_field(
+            name=f"{prefix}concede [Game ID]",
+            value="Concedes in the game.",
             inline=False,
         )
         embed.set_footer(
