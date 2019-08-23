@@ -8,13 +8,13 @@ from .utils import (
     update_game,
     get_database_user,
     is_player,
-    handle_draw_offer,
-    handle_draw_accept,
+    handle_action_offer,
+    handle_action_accept,
     handle_turn_check,
     handle_move,
     create_database_user,
 )
-from .. import database
+from .. import database, constants
 
 
 class Chess(commands.Cog):
@@ -117,15 +117,13 @@ class Chess(commands.Cog):
             await ctx.send(f"{ctx.author.mention}, you can't use !accept in this game.")
             return
 
-        if (
-            game.draw_proposed and game.white_accepted_draw != game.black_accepted_draw
-        ):  # draw accept
+        if game.white_accepted_action != game.black_accepted_action:
             try:
-                handle_draw_accept(user, game)
+                handle_action_accept(user, game)
             except RuntimeError as err:
                 logger.error(err)
                 await ctx.send(
-                    f"{ctx.author.mention}, you can't accept your own draw offer."
+                    f"{ctx.author.mention}, you can't accept your own actions."
                 )
                 return
 
@@ -180,7 +178,7 @@ class Chess(commands.Cog):
             )
             return
 
-        update_game(game, recalculate_expiration_date=True, reset_draw_offer=True)
+        update_game(game, recalculate_expiration_date=True, reset_action=True)
         user.last_game = game
         await self.status_func(ctx, game=game)
 
@@ -212,7 +210,9 @@ class Chess(commands.Cog):
             )
             return
 
-        if game.draw_proposed:  # check that a draw hasn't been offered yet
+        if (
+            game.action_proposed == constants.ACTION_DRAW
+        ):  # check that a draw hasn't been offered yet
             logger.error(f"Draw has already been offered in game #{game.id}")
             await ctx.send(
                 f"{ctx.author.mention}, a draw has already been offered in this game."
@@ -220,7 +220,7 @@ class Chess(commands.Cog):
             return
 
         try:
-            handle_draw_offer(user, game)
+            handle_action_offer(user, game, constants.ACTION_DRAW)
         except RuntimeError as err:
             logger.error(err)
             await ctx.send(

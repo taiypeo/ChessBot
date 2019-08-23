@@ -8,3 +8,8 @@ def turn_to_str(turn: int) -> str:
         raise RuntimeError("Invalid turn in turn_to_str()")
 
     return ["white", "black", "draw"][turn]
+
+
+ACTION_NONE = 0
+ACTION_DRAW = 1
+ACTION_BACK = 2

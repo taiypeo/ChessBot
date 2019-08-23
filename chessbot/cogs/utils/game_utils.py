@@ -30,7 +30,7 @@ def has_game_expired(game: database.Game) -> bool:
 def update_game(
     game: database.Game,
     recalculate_expiration_date: bool = False,
-    reset_draw_offer: bool = False,
+    reset_action: bool = False,
 ) -> None:
     if game.winner is not None:
         return  # if the game has already finished, there is nothing to do
@@ -52,8 +52,8 @@ def update_game(
         game.expiration_date = datetime.datetime.now() + EXPIRATION_TIMEDELTA
         database.add_to_database(game)
 
-    claim_draw = game.draw_proposed
-    both_agreed = game.white_accepted_draw and game.black_accepted_draw
+    claim_draw = game.action_proposed == constants.ACTION_DRAW
+    both_agreed = game.white_accepted_action and game.black_accepted_action
 
     try:
         winner = get_winner(board, claim_draw=claim_draw, both_agreed=both_agreed)
@@ -66,10 +66,10 @@ def update_game(
             err
         )  # not actually an error, just the reasoning behind the game not being over
 
-        if reset_draw_offer:
-            game.draw_proposed = False
-            game.white_accepted_draw = False
-            game.black_accepted_draw = False
+        if reset_action:
+            game.action_proposed = constants.ACTION_NONE
+            game.white_accepted_action = False
+            game.black_accepted_action = False
 
             database.add_to_database(game)
 
@@ -81,13 +81,13 @@ def update_game(
     database.add_to_database(game)
 
 
-def who_offered_draw(game: database.Game) -> int:
-    if not game.draw_proposed or not (
-        game.white_accepted_draw or game.black_accepted_draw
+def who_offered_action(game: database.Game) -> int:
+    if game.action_proposed == constants.ACTION_NONE or not (
+        game.white_accepted_action or game.black_accepted_action
     ):
-        raise RuntimeError("Nobody offered to draw")
+        raise RuntimeError("Nobody offered an action")
 
-    if game.white_accepted_draw:
+    if game.white_accepted_action:
         return constants.WHITE
     else:
         return constants.BLACK

@@ -11,6 +11,7 @@ from sqlalchemy.orm import relationship
 import datetime
 from . import Base
 from ..config import EXPIRATION_TIMEDELTA
+from ..constants import ACTION_NONE
 
 
 class Game(Base):
@@ -29,9 +30,9 @@ class Game(Base):
     winner = Column(SmallInteger)
     win_reason = Column(String)
 
-    draw_proposed = Column(Boolean, default=False)
-    white_accepted_draw = Column(Boolean, default=False)
-    black_accepted_draw = Column(Boolean, default=False)
+    action_proposed = Column(SmallInteger, default=ACTION_NONE, nullable=False)
+    white_accepted_action = Column(Boolean, default=False, nullable=False)
+    black_accepted_action = Column(Boolean, default=False, nullable=False)
 
     expiration_date = Column(
         DateTime, default=lambda: datetime.datetime.now() + EXPIRATION_TIMEDELTA

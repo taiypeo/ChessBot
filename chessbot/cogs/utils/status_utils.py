@@ -4,7 +4,7 @@ from typing import Tuple
 
 from .chess_utils import load_from_pgn, to_png, get_turn
 from .user_utils import get_discord_user
-from .game_utils import who_offered_draw
+from .game_utils import who_offered_action
 from ... import database, constants
 
 
@@ -45,15 +45,15 @@ def get_game_status(bot: commands.Bot, game: database.Game) -> Tuple[str, discor
         turn_str = constants.turn_to_str(turn)
         status += f"*{turn_str.capitalize()}'s turn.*\n"
 
-        if game.draw_proposed:
-            if not (game.white_accepted_draw or game.black_accepted_draw):
+        if game.action_proposed == constants.ACTION_DRAW:
+            if not (game.white_accepted_action or game.black_accepted_action):
                 raise RuntimeError("Draw was offered but neither player accepted it")
-            if game.white_accepted_draw and game.black_accepted_draw:
+            if game.white_accepted_action and game.black_accepted_action:
                 raise RuntimeError(
                     "Both oppontents accepted to draw, but the game is not over"
                 )
 
-            draw_side = who_offered_draw(game)
+            draw_side = who_offered_action(game)
             opposite_side = (
                 constants.BLACK if draw_side == constants.WHITE else constants.WHITE
             )
