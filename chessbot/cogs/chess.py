@@ -55,7 +55,7 @@ class Chess(commands.Cog):
     ) -> None:
         if game is None:
             game = await self.get_game(ctx, ctx.author.id, game_id)
-            if game is None:
+            if game is None:  # check the Game object for validity
                 return
 
         try:
@@ -81,21 +81,25 @@ class Chess(commands.Cog):
         logger.info("Got an !accept command")
 
         game = await self.get_game(ctx, ctx.author.id, game_id)
-        if game is None:
+        if game is None:  # check the Game object for validity
             return
 
         user = await self.get_author_user(ctx)
-        if user is None:
+        if user is None:  # check the User object for validity
             return
 
-        if not is_player(game, user):
+        if not is_player(
+            game, user
+        ):  # check that the message author is a player in this game
             logger.error(
                 f"User #{user.id} tried to illegally !accept in game #{game.id}"
             )
             await ctx.send(f"{ctx.author.mention}, you can't use !accept in this game.")
             return
 
-        if game.draw_proposed and game.white_accepted_draw != game.black_accepted_draw:
+        if (
+            game.draw_proposed and game.white_accepted_draw != game.black_accepted_draw
+        ):  # draw accept
             try:
                 handle_draw_accept(user, game)
             except RuntimeError as err:
@@ -119,19 +123,21 @@ class Chess(commands.Cog):
         logger.info("Got a !move command")
 
         game = await self.get_game(ctx, ctx.author.id, game_id)
-        if game is None:
+        if game is None:  # check the Game object for validity
             return
 
-        if game.winner is not None:
+        if game.winner is not None:  # check that the game hasn't finished yet
             await ctx.send(f"{ctx.author.mention}, the game is over.")
             logger.error(f"Can't move in game #{game.id} - the game is over")
             return
 
         user = await self.get_author_user(ctx)
-        if user is None:
+        if user is None:  # check the User object for validity
             return
 
-        if not is_player(game, user):
+        if not is_player(
+            game, user
+        ):  # check that the message author is a player in this game
             logger.error(f"User #{user.id} tried to illegally play game #{game.id}")
             await ctx.send(f"{ctx.author.mention}, you can't play this game.")
             return
@@ -161,19 +167,21 @@ class Chess(commands.Cog):
         logger.info("Got a !draw command")
 
         game = await self.get_game(ctx, ctx.author.id, game_id)
-        if game is None:
+        if game is None:  # check the Game object for validity
             return
 
-        if game.winner is not None:
+        if game.winner is not None:  # check that the game hasn't finished yet
             await ctx.send(f"{ctx.author.mention}, the game is over.")
             logger.error(f"Can't offer draw in game #{game.id} - the game is over")
             return
 
         user = await self.get_author_user(ctx)
-        if user is None:
+        if user is None:  # check the User object for validity
             return
 
-        if not is_player(game, user):
+        if not is_player(
+            game, user
+        ):  # check that the message author is a player in this game
             logger.error(
                 f"User #{user.id} tried to illegally offer a draw in game #{game.id}"
             )
@@ -182,7 +190,7 @@ class Chess(commands.Cog):
             )
             return
 
-        if game.draw_proposed:
+        if game.draw_proposed:  # check that a draw hasn't been offered yet
             logger.error(f"Draw has already been offered in game #{game.id}")
             await ctx.send(
                 f"{ctx.author.mention}, a draw has already been offered in this game."
