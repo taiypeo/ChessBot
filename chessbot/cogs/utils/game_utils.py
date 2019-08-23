@@ -27,7 +27,11 @@ def has_game_expired(game: database.Game) -> bool:
     return False  # game finished before expiring
 
 
-def update_game(game: database.Game, recalculate_expiration_date: bool = False, reset_draw_offer: bool = False) -> None:
+def update_game(
+    game: database.Game,
+    recalculate_expiration_date: bool = False,
+    reset_draw_offer: bool = False,
+) -> None:
     if game.winner is not None:
         return  # if the game has already finished, there is nothing to do
 

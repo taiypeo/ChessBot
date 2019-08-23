@@ -16,22 +16,31 @@ class Chess(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
+    async def get_game(
+        self, ctx: commands.Context, user_id: int, game_id: int
+    ) -> database.Game:
+        try:
+            game = get_game(user_id, game_id)
+        except RuntimeError as err:
+            if game_id is None:
+                await ctx.send(f"{ctx.author.mention}, you don't have a last game.")
+            else:
+                await ctx.send(f"{ctx.author.mention}, couldn't find that game.")
+
+            logger.error(err)
+            return None
+
+        logger.info(f"Got game - {game}")
+        return game
+
     async def status_func(
         self, ctx: commands.Context, game_id: int = None, game: database.Game = None
     ) -> None:
         if game is None:
-            try:
-                game = get_game(ctx.author.id, game_id)
-            except RuntimeError as err:
-                if game_id is None:
-                    await ctx.send(f"{ctx.author.mention}, you don't have a last game.")
-                else:
-                    await ctx.send(f"{ctx.author.mention}, couldn't find that game.")
-
-                logger.error(err)
+            game = await self.get_game(ctx, ctx.author.id, game_id)
+            if game is None:
                 return
 
-            logger.info(f"Got game #{game_id} - {game}")
             update_game(game)
 
         try:
@@ -56,18 +65,9 @@ class Chess(commands.Cog):
     async def accept(self, ctx: commands.Context, game_id: int = None) -> None:
         logger.info("Got an !accept command")
 
-        try:
-            game = get_game(ctx.author.id, game_id)
-        except RuntimeError as err:
-            if game_id is None:
-                await ctx.send(f"{ctx.author.mention}, you don't have a last game.")
-            else:
-                await ctx.send(f"{ctx.author.mention}, couldn't find that game.")
-
-            logger.error(err)
+        game = await self.get_game(ctx, ctx.author.id, game_id)
+        if game is None:
             return
-
-        logger.info(f"Got game #{game_id} - {game}")
 
         if game.draw_proposed and game.white_accepted_draw != game.black_accepted_draw:
             try:
@@ -98,11 +98,21 @@ class Chess(commands.Cog):
             logger.error(f"Nothing to accept for game #{game.id}")
 
     @commands.command()
-    async def play(self, ctx: commands.Context, user: discord.Member) -> None:
-        pass
+    async def move(
+        self, ctx: commands.Context, san_move: str, game_id: int = None
+    ) -> None:
+        logger.info("Got a !move command")
+
+        game = await self.get_game(ctx, ctx.author.id, game_id)
+        if game is None:
+            return
+
+        if game.winner is not None:
+            await ctx.send(f"{ctx.author.mention}, the game is over.")
+            logger.error(f"Can't move in game #{game.id} - the game is over")
 
     @commands.command()
-    async def move(self, ctx: commands.Context, pgn: str, san_move: str) -> None:
+    async def play(self, ctx: commands.Context, user: discord.Member) -> None:
         pass
 
     async def cog_command_error(
