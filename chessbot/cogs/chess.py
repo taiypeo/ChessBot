@@ -128,6 +128,8 @@ class Chess(commands.Cog):
                 )
                 return
 
+            user.last_game = game
+            database.add_to_database(user)
             await self.status_func(ctx, game=game)
         else:
             await ctx.send(
@@ -181,6 +183,7 @@ class Chess(commands.Cog):
 
         update_game(game, recalculate_expiration_date=True, reset_action=True)
         user.last_game = game
+        database.add_to_database(user)
         await self.status_func(ctx, game=game)
 
     @commands.command()
@@ -243,6 +246,8 @@ class Chess(commands.Cog):
             return
 
         update_game(game)
+        user.last_game = game
+        database.add_to_database(user)
         await self.status_func(ctx, game=game)
 
     @commands.command()
@@ -296,6 +301,8 @@ class Chess(commands.Cog):
             return
 
         update_game(game, concede_side=which_player(game, user))
+        user.last_game = game
+        database.add_to_database(user)
         await self.status_func(ctx, game=game)
 
     async def cog_command_error(
