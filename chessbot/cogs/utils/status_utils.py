@@ -66,7 +66,7 @@ def get_game_status(bot: commands.Bot, game: database.Game) -> Tuple[str, discor
 
             status += (
                 f'**{action_side_str} offered a "{action_str}" action.** '
-                f"If {opposite_side_str} wants to accept, they should type *!accept {game.id}*\n"
+                f"If {opposite_side_str} wants to accept, they should type *{bot.command_prefix}accept {game.id}*\n"
             )
 
         status += f"\nThis game will expire on {game.expiration_date},\nresulting in {turn_str} losing, if they don't make a move.\n"
