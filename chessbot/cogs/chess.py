@@ -8,8 +8,13 @@ from .utils import (
     update_game,
     get_database_user,
     handle_draw_accept,
+    load_from_pgn,
+    save_to_pgn,
+    move,
+    get_turn,
 )
 from .. import database
+from .. import constants
 
 
 class Chess(commands.Cog):
@@ -30,8 +35,21 @@ class Chess(commands.Cog):
             logger.error(err)
             return None
 
-        logger.info(f"Got game - {game}")
+        logger.info(f"Got a game - {game}")
+
+        update_game(game)
         return game
+
+    async def get_user(self, user_id: int) -> database.User:
+        try:
+            user = get_database_user(user_id)
+            return user
+        except RuntimeError as err:
+            logger.error(err)
+            await ctx.send(
+                f"{ctx.author.mention}, failed to fetch your data from the database. Please, contact the admin."
+            )
+            return None
 
     async def status_func(
         self, ctx: commands.Context, game_id: int = None, game: database.Game = None
@@ -40,8 +58,6 @@ class Chess(commands.Cog):
             game = await self.get_game(ctx, ctx.author.id, game_id)
             if game is None:
                 return
-
-            update_game(game)
 
         try:
             status_str, img = get_game_status(self.bot, game)
@@ -70,14 +86,8 @@ class Chess(commands.Cog):
             return
 
         if game.draw_proposed and game.white_accepted_draw != game.black_accepted_draw:
-            try:
-                user = get_database_user(ctx.author.id)
-            except RuntimeError as err:
-                logger.error(err)
-                await ctx.send(
-                    f"{ctx.author.mention}, failed to fetch your data from the database. Please, contact the admin."
-                )
-
+            user = await self.get_user(ctx.author.id)
+            if user is None:
                 return
 
             try:
@@ -87,7 +97,6 @@ class Chess(commands.Cog):
                 await ctx.send(
                     f"{ctx.author.mention}, you can't accept your own draw offer."
                 )
-
                 return
 
             await self.status_func(ctx, game=game)
@@ -110,6 +119,34 @@ class Chess(commands.Cog):
         if game.winner is not None:
             await ctx.send(f"{ctx.author.mention}, the game is over.")
             logger.error(f"Can't move in game #{game.id} - the game is over")
+
+            return
+
+        user = await self.get_user(ctx.author.id)
+        if user is None:
+            return
+
+        board = load_from_pgn(game.pgn)
+        if (get_turn(board) == constants.WHITE and user == game.black) or (
+            get_turn(board) == constants.BLACK and user == game.white
+        ):
+            logger.error("Can't move when it's not your turn")
+            await ctx.send(f"{ctx.author.mention}, it is not your turn.")
+            return
+
+        try:
+            move(board, san_move)
+        except ValueError as err:
+            logger.error(err)
+            await ctx.send(
+                f"{ctx.author.mention}, {san_move} is not a valid SAN move in this game."
+            )
+            return
+        game.pgn = save_to_pgn(board)
+        database.add_to_database(game)
+
+        update_game(game, recalculate_expiration_date=True, reset_draw_offer=True)
+        await self.status_func(ctx, game=game)
 
     @commands.command()
     async def play(self, ctx: commands.Context, user: discord.Member) -> None:

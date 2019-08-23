@@ -46,7 +46,6 @@ def update_game(
             game.winner = constants.WHITE
 
         database.add_to_database(game)
-
         return
 
     if recalculate_expiration_date:
