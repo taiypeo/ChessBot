@@ -1,4 +1,5 @@
 from .chess_utils import load_from_pgn, get_winner, get_game_over_reason, get_turn
+from .user_utils import get_database_user
 from ... import constants, database
 from ...config import EXPIRATION_TIMEDELTA
 
@@ -8,12 +9,7 @@ import datetime
 
 def get_game(user_id: int, game_id: int) -> database.Game:
     if game_id is None:
-        user = (
-            database.session.query(database.User).filter_by(discord_id=user_id).first()
-        )
-        if user is None:
-            raise RuntimeError(f"User #{user_id} does not exist in the database")
-
+        user = get_database_user(user_id)
         game = user.last_game
         if game is None:
             raise RuntimeError(f"User #{user_id} does not have a last game")
@@ -31,7 +27,7 @@ def has_game_expired(game: database.Game) -> bool:
     return False  # game finished before expiring
 
 
-def update_game(game: database.Game, recalculate_expiration_date: bool = False) -> None:
+def update_game(game: database.Game, recalculate_expiration_date: bool = False, reset_draw_offer: bool = False) -> None:
     if game.winner is not None:
         return  # if the game has already finished, there is nothing to do
 
@@ -66,6 +62,13 @@ def update_game(game: database.Game, recalculate_expiration_date: bool = False) 
         logger.info(
             err
         )  # not actually an error, just the reasoning behind the game not being over
+
+        if reset_draw_offer:
+            game.draw_proposed = False
+            game.white_accepted_draw = False
+            game.white_accepted_draw = False
+
+            database.add_to_database(game)
 
         return
 

@@ -3,7 +3,7 @@ from discord.ext import commands
 from typing import Tuple
 
 from .chess_utils import load_from_pgn, to_png, get_turn
-from .user_utils import get_user
+from .user_utils import get_discord_user
 from .game_utils import who_offered_draw
 from ... import database, constants
 
@@ -30,7 +30,7 @@ def get_game_status(bot: commands.Bot, game: database.Game) -> Tuple[str, discor
             f"Either white or black player is not present in game #{game.id}"
         )
 
-    white, black = get_user(bot, game.white), get_user(bot, game.black)
+    white, black = get_discord_user(bot, game.white), get_discord_user(bot, game.black)
     white_mention, black_mention = _get_status_mentions(white, black, game)
 
     status = (
