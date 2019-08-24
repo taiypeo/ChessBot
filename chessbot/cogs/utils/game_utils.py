@@ -7,6 +7,7 @@ from .chess_utils import (
     save_to_pgn,
 )
 from .user_utils import get_database_user
+from .elo_utils import recalculate_elo
 from ... import constants, database
 from ...config import EXPIRATION_TIMEDELTA
 
@@ -54,6 +55,8 @@ def update_game(
             game.winner = constants.WHITE
 
         database.add_to_database(game)
+
+        recalculate_elo(game)
         return
 
     if concede_side in [constants.WHITE, constants.BLACK]:
@@ -67,6 +70,8 @@ def update_game(
         game.expiration_date = None
 
         database.add_to_database(game)
+
+        recalculate_elo(game)
         return
 
     if recalculate_expiration_date:
@@ -106,6 +111,8 @@ def update_game(
     game.win_reason = reason
     game.expiration_date = None
     database.add_to_database(game)
+
+    recalculate_elo(game)
 
 
 def who_offered_action(game: database.Game) -> int:
