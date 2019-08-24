@@ -1,5 +1,5 @@
 from discord.ext import commands
-from .utils import get_author_user_ctx, get_vs_line
+from .utils import get_author_user_ctx, get_vs_line, update_game
 
 from loguru import logger
 
@@ -15,6 +15,9 @@ class Misc(commands.Cog):
         user = await get_author_user_ctx(ctx)
         if user is None:  # check the User object for validity
             return
+
+        for game in user.games:
+            update_game(game)
 
         games = user.ongoing_games
         if all.lower() == "all":
