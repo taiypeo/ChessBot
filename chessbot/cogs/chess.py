@@ -3,17 +3,17 @@ import discord
 from discord.ext import commands
 from loguru import logger
 from .utils import (
-    get_game,
+    get_game_ctx,
+    get_author_user_ctx,
+    create_database_user_ctx,
     get_game_status,
     update_game,
-    get_database_user,
     is_player,
     which_player,
     handle_action_offer,
     handle_action_accept,
     handle_turn_check,
     handle_move,
-    create_database_user,
 )
 from .. import database, constants
 
@@ -22,60 +22,11 @@ class Chess(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
 
-    async def get_game(
-        self, ctx: commands.Context, user_id: int, game_id: int
-    ) -> database.Game:
-        try:
-            game = get_game(user_id, game_id)
-        except RuntimeError as err:
-            if game_id is None:
-                await ctx.send(f"{ctx.author.mention}, you don't have a last game.")
-            else:
-                await ctx.send(f"{ctx.author.mention}, couldn't find that game.")
-
-            logger.error(err)
-            return None
-
-        logger.info(f"Got a game - {game}")
-
-        update_game(game)
-        return game
-
-    async def get_author_user(self, ctx: commands.Context) -> database.User:
-        try:
-            user = get_database_user(ctx.author.id)
-            return user
-        except RuntimeError as err:
-            logger.error(err)
-            await ctx.send(
-                f"{ctx.author.mention}, failed to fetch your data from the database. Please, contact the admin."
-            )
-            return None
-
-    async def create_database_user(
-        ctx: commands.Context, discord_user: discord.User
-    ) -> database.User:
-        try:
-            database_user = create_database_user(discord_user)
-        except RuntimeError as err:
-            logger.info(err)  # not an error, the user already exists
-
-            try:
-                database_user = get_database_user(discord_user.id)
-            except RuntimeError as err:
-                logger.error(err)
-                await ctx.send(
-                    f"{discord_user.mention}, failed to find you in the database. Please, contact the admin."
-                )
-                return None
-
-        return database_user
-
     async def status_func(
         self, ctx: commands.Context, game_id: int = None, game: database.Game = None
     ) -> None:
         if game is None:
-            game = await self.get_game(ctx, ctx.author.id, game_id)
+            game = await get_game_ctx(ctx, ctx.author.id, game_id)
             if game is None:  # check the Game object for validity
                 return
 
@@ -101,11 +52,11 @@ class Chess(commands.Cog):
     async def accept(self, ctx: commands.Context, game_id: int = None) -> None:
         logger.info("Got an !accept command")
 
-        game = await self.get_game(ctx, ctx.author.id, game_id)
+        game = await get_game_ctx(ctx, ctx.author.id, game_id)
         if game is None:  # check the Game object for validity
             return
 
-        user = await self.get_author_user(ctx)
+        user = await get_author_user_ctx(ctx)
         if user is None:  # check the User object for validity
             return
 
@@ -143,7 +94,7 @@ class Chess(commands.Cog):
     ) -> None:
         logger.info("Got a !move command")
 
-        game = await self.get_game(ctx, ctx.author.id, game_id)
+        game = await get_game_ctx(ctx, ctx.author.id, game_id)
         if game is None:  # check the Game object for validity
             return
 
@@ -152,7 +103,7 @@ class Chess(commands.Cog):
             logger.error(f"Can't move in game #{game.id} - the game is over")
             return
 
-        user = await self.get_author_user(ctx)
+        user = await get_author_user_ctx(ctx)
         if user is None:  # check the User object for validity
             return
 
@@ -192,7 +143,7 @@ class Chess(commands.Cog):
     ) -> None:
         logger.info("Got an !offer command")
 
-        game = await self.get_game(ctx, ctx.author.id, game_id)
+        game = await get_game_ctx(ctx, ctx.author.id, game_id)
         if game is None:  # check the Game object for validity
             return
 
@@ -201,7 +152,7 @@ class Chess(commands.Cog):
             logger.error(f"Can't offer an action in game #{game.id} - the game is over")
             return
 
-        user = await self.get_author_user(ctx)
+        user = await get_author_user_ctx(ctx)
         if user is None:  # check the User object for validity
             return
 
@@ -252,8 +203,8 @@ class Chess(commands.Cog):
 
     @commands.command()
     async def play(self, ctx: commands.Context, user: discord.Member) -> None:
-        white = await self.create_database_user(ctx.author)
-        black = await self.create_database_user(user)
+        white = await create_database_user_ctx(ctx, ctx.author)
+        black = await create_database_user_ctx(ctx, user)
 
         if white is None or black is None:  # check the validity of User objects
             return
@@ -278,7 +229,7 @@ class Chess(commands.Cog):
     async def concede(self, ctx: commands.Context, game_id: int = None) -> None:
         logger.info("Got a !concede command")
 
-        game = await self.get_game(ctx, ctx.author.id, game_id)
+        game = await get_game_ctx(ctx, ctx.author.id, game_id)
         if game is None:  # check the Game object for validity
             return
 
@@ -287,7 +238,7 @@ class Chess(commands.Cog):
             logger.error(f"Can't concede in game #{game.id} - the game is over")
             return
 
-        user = await self.get_author_user(ctx)
+        user = await get_author_user_ctx(ctx)
         if user is None:  # check the User object for validity
             return
 
