@@ -55,6 +55,9 @@ class Help(commands.Cog):
         embed.add_field(
             name=f"{prefix}games [*all*]", value="Shows your games.", inline=False
         )
+        embed.add_field(
+            name=f"{prefix}elo", value="Shows your elo rating.", inline=False
+        )
         embed.set_footer(
             text="This bot is still under development, expect many things to change."
         )

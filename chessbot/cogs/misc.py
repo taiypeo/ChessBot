@@ -37,3 +37,21 @@ class Misc(commands.Cog):
         else:
             output = f"{ctx.author.mention}, your games:\n\n{output}"
         await ctx.send(output)
+
+    @commands.command()
+    async def elo(self, ctx: commands.Context) -> None:
+        logger.info("Got an !elo command")
+
+        user = await get_author_user_ctx(ctx)
+        if user is None:  # check the User object for validity
+            return
+        if user.elo is None:
+            logger.error(f"User #{user.discord_id} does not have an elo rating")
+            await ctx.send(
+                f"{ctx.author.mention}, you don't have an elo rating. Please, contact the admin."
+            )
+            return
+
+        await ctx.send(
+            f"{ctx.author.mention}, your current elo rating is *{user.elo}*."
+        )
