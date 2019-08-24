@@ -1,5 +1,7 @@
+import traceback
 from discord.ext import commands
 from .utils import get_author_user_ctx, get_vs_line, update_game
+from .. import database
 
 from loguru import logger
 
@@ -55,3 +57,39 @@ class Misc(commands.Cog):
         await ctx.send(
             f"{ctx.author.mention}, your current elo rating is *{user.elo}*."
         )
+
+    @commands.command()
+    async def leaderboard(self, ctx: commands.Context, top: int = 10) -> None:
+        logger.info("Got a !leaderboard command")
+
+        if top < 3 or top > 50:
+            logger.error(f"{top} is an invalid value for top in !leaderboard")
+            await ctx.send(
+                f'{ctx.author.mention}, choose another value of "Top *N*", please.'
+            )
+            return
+
+        outputs = []
+        users = (
+            database.session.query(database.User)
+            .order_by(database.User.elo.desc())
+            .limit(top)
+        )
+        for i, user in enumerate(users):
+            username = user.username or user.discord_id
+            user_output = f"**[{i + 1}]** {username} - {user.elo} elo."
+            outputs.append(user_output)
+
+        output = "\n".join(outputs)
+        if output == "":
+            output = f"{ctx.author.mention}, there aren't any players in the leaderboard yet."
+        else:
+            output = f"__Global leaderboard:__\n\n{output}"
+        await ctx.send(output)
+
+    async def cog_command_error(
+        self, ctx: commands.Context, error: commands.CommandError
+    ) -> None:
+        logger.error(error)
+        logger.error(traceback.format_exc())
+        await ctx.send(f"{ctx.author.mention}, {error}")

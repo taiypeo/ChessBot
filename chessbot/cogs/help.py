@@ -58,6 +58,11 @@ class Help(commands.Cog):
         embed.add_field(
             name=f"{prefix}elo", value="Shows your elo rating.", inline=False
         )
+        embed.add_field(
+            name=f"{prefix}leaderboard [Top *N*]",
+            value="Shows the global leaderboard (3 ≤ N ≤ 50).",
+            inline=False,
+        )
         embed.set_footer(
             text="This bot is still under development, expect many things to change."
         )
