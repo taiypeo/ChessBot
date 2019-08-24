@@ -24,19 +24,20 @@ def _get_status_mentions(
     return white_mention, black_mention
 
 
+def get_vs_line(bot: commands.Bot, game: database.Game) -> str:
+    white, black = get_discord_user(bot, game.white), get_discord_user(bot, game.black)
+    white_mention, black_mention = _get_status_mentions(white, black, game)
+    return f"{white_mention} (white) **VS.** {black_mention} (black)"
+
+
 def get_game_status(bot: commands.Bot, game: database.Game) -> Tuple[str, discord.File]:
     if not game.white or not game.black:
         raise RuntimeError(
             f"Either white or black player is not present in game #{game.id}"
         )
 
-    white, black = get_discord_user(bot, game.white), get_discord_user(bot, game.black)
-    white_mention, black_mention = _get_status_mentions(white, black, game)
-
-    status = (
-        f"__Game ID: {game.id}__\n"
-        f"{white_mention} (white) **VS.** {black_mention} (black)\n"
-    )
+    vs_line = get_vs_line(bot, game)
+    status = f"__Game ID: {game.id}__\n{vs_line}\n"
 
     board = load_from_pgn(game.pgn)
 

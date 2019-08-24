@@ -34,7 +34,7 @@ async def get_author_user_ctx(ctx: commands.Context) -> database.User:
     except RuntimeError as err:
         logger.error(err)
         await ctx.send(
-            f"{ctx.author.mention}, failed to fetch your data from the database. Please, contact the admin."
+            f"{ctx.author.mention}, failed to fetch your data from the database. Try playing with someone first."
         )
         return None
 

@@ -23,5 +23,13 @@ class User(Base):
     def games(self) -> List[Game]:
         return [*self.white_games, *self.black_games]
 
+    @property
+    def ongoing_games(self) -> List[Game]:
+        return [game for game in self.games if game.winner is None]
+
+    @property
+    def finished_games(self) -> List[Game]:
+        return [game for game in self.games if game.winner is not None]
+
     def __repr__(self) -> str:
         return f"<User discord_id={self.discord_id}; elo={self.elo}>"

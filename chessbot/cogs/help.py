@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from loguru import logger
 
 
 class Help(commands.Cog):
@@ -8,8 +9,9 @@ class Help(commands.Cog):
 
     @commands.command()
     async def help(self, ctx: commands.Context) -> None:
-        prefix = self.bot.command_prefix
+        logger.info("Got a !help command")
 
+        prefix = self.bot.command_prefix
         embed = discord.Embed(
             title="ChessBot v0.3",
             url="https://github.com/QwertygidQ/ChessBot",
@@ -49,6 +51,9 @@ class Help(commands.Cog):
             name=f"{prefix}concede [Game ID]",
             value="Concedes in the game.",
             inline=False,
+        )
+        embed.add_field(
+            name=f"{prefix}games [*all*]", value="Shows your games.", inline=False
         )
         embed.set_footer(
             text="This bot is still under development, expect many things to change."
