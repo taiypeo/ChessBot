@@ -1,6 +1,6 @@
 import traceback
 from discord.ext import commands
-from .utils import get_author_user_ctx, get_vs_line, update_game
+from .utils import get_author_user_ctx, get_vs_line, update_ongoing_games
 from .. import database
 
 from loguru import logger
@@ -17,9 +17,6 @@ class Misc(commands.Cog):
         user = await get_author_user_ctx(ctx)
         if user is None:  # check the User object for validity
             return
-
-        for game in user.games:
-            update_game(game)
 
         games = user.ongoing_games
         if all.lower() == "all":
@@ -86,6 +83,10 @@ class Misc(commands.Cog):
         else:
             output = f"__Global leaderboard:__\n\n{output}"
         await ctx.send(output)
+
+    async def cog_before_invoke(self, ctx: commands.Context) -> None:
+        logger.info("Updating all ongoing games")
+        update_ongoing_games()
 
     async def cog_command_error(
         self, ctx: commands.Context, error: commands.CommandError

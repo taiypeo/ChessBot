@@ -40,6 +40,7 @@ def update_game(
     recalculate_expiration_date: bool = False,
     reset_action: bool = False,
     concede_side: int = None,
+    only_check_expiration: bool = False,
 ) -> None:
     if game.winner is not None:
         return  # if the game has already finished, there is nothing to do
@@ -57,6 +58,9 @@ def update_game(
         database.add_to_database(game)
 
         recalculate_elo(game)
+        return
+
+    if only_check_expiration:
         return
 
     if concede_side in [constants.WHITE, constants.BLACK]:
@@ -113,6 +117,18 @@ def update_game(
     database.add_to_database(game)
 
     recalculate_elo(game)
+
+
+def update_ongoing_games() -> None:
+    games = (
+        database.session.query(database.Game)
+        .filter(database.Game.winner.is_(None))
+        .all()
+    )
+    for game in games:
+        update_game(game, only_check_expiration=True)
+        # checking only the expiration, since after each meaningful action (!offer, !move, etc.)
+        # the game is updated automatically
 
 
 def who_offered_action(game: database.Game) -> int:

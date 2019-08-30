@@ -14,6 +14,7 @@ from .utils import (
     handle_action_accept,
     handle_turn_check,
     handle_move,
+    update_ongoing_games,
 )
 from .. import database, constants
 
@@ -255,6 +256,10 @@ class Chess(commands.Cog):
         user.last_game = game
         database.add_to_database(user)
         await self.status_func(ctx, game=game)
+
+    async def cog_before_invoke(self, ctx: commands.Context) -> None:
+        logger.info("Updating all ongoing games")
+        update_ongoing_games()
 
     async def cog_command_error(
         self, ctx: commands.Context, error: commands.CommandError
