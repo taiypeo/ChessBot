@@ -13,7 +13,7 @@ class Help(commands.Cog):
 
         prefix = self.bot.command_prefix
         embed = discord.Embed(
-            title="ChessBot v0.4",
+            title="ChessBot v1.0",
             url="https://github.com/QwertygidQ/ChessBot",
             description="A chess bot for Discord, made with discord.py and python-chess.",
             color=0x88E93A,
