@@ -1,6 +1,8 @@
 # ChessBot
 A chess bot for Discord, made with discord.py and python-chess.
 
+![Screenshot of the bot](https://user-images.githubusercontent.com/4065977/66155614-bb7b2180-e628-11e9-9e5a-0fb3c15bdc5c.png)
+
 ## Setup
 1. Create a file called `env_variables.sh` in the root directory that looks like this:
 ```
