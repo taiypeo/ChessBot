@@ -12,7 +12,10 @@ export TOKEN="YOUR DISCORD BOT TOKEN"
 export DB_PATH="PATH TO YOUR DATABASE"
 
 ```
-2. `pip3 install -r requirements.txt`
+2.
+```
+pip3 install -r requirements.txt
+```
 
 ## Running the bot
 ```
